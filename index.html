@@ -1,0 +1,412 @@
+<html>
+<head>
+ <meta charset="UTF-8">
+    <title>US Geo Map</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.5/d3.js"></script>
+    <script src="//code.jquery.com/jquery-1.11.2.min.js"></script>
+    <script src="http://d3js.org/queue.v1.min.js"></script>
+      <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css"></script>
+    <script type="text/javascript">
+// d3Chart.js
+
+console.log(d3)
+
+var d3Chart = {};
+
+d3Chart.create = function(el, props, file) {
+
+
+queue()
+  .defer(d3.json, "us.json")
+  .await(ready);
+    function ready(error, us, data){
+
+  svg = d3.select(el).append('svg')
+    .attr('class', 'd3')
+    .attr('width', props.width)
+    .attr('height', props.height);
+
+  // Create the states 
+  projection = d3.geo.albersUsa()
+    .scale(500)
+    .translate([props.width / 2, props.height / 2]);
+
+  path = d3.geo.path()
+    .projection(projection);
+ 
+  g = svg.append('g')
+    .attr('class','states');
+
+  g.selectAll('path')
+    .data(us.states)
+    .enter()
+    .append('path')
+    .attr('d', path)
+    .attr('id', function(d) { return d.properties.abbr; })
+
+  // Create the legend  
+  gridSize = Math.floor(props.width / 24)
+  legendElementWidth = gridSize*3
+  colors = ['#deebf7', '#c6dbef', '#9ecae1', '#6baed6', '#4292c6', '#2171b5', '#08519c']
+
+  var legend = svg.selectAll(".legend")
+    .data(colors)
+    .enter().append("g")
+    .attr("class", "legend");
+  legend.append("rect")
+    .attr("x", function(d, i) { return (legendElementWidth * i) + (props.width - legendElementWidth*colors.length)/2; })
+    .attr("y", props.height * 0.9)
+    .attr("width", legendElementWidth)
+    .attr("height", gridSize / 2)
+    .style("fill", function(d) { return d; });
+  legend.append("text")
+    .attr("class", "mono")
+    .attr("x", function(d, i) { return (legendElementWidth * i) + (props.width - legendElementWidth*colors.length)/2;})
+    .attr("y", props.height * 0.9 + gridSize);
+
+
+   d3Chart.update(el, us, file, colors);
+  
+
+  }
+
+
+};
+
+d3Chart.update = function(el, us, file, colors) {
+  // Re-compute the scales, and render the data points
+ queue()
+      .defer(d3.csv, file)
+      .await(ready);
+    function ready(error, data){
+      values = []
+          data.forEach(function(state){
+            values[state.state] = +state.freq;
+      });
+
+      var mapColor = d3.scale.quantize()
+        .domain([d3.min(us.states, function(d) {
+          return values[d.properties.abbr];
+        }), d3.max(us.states, function(d) {
+          return values[d.properties.abbr];
+        })])
+        .range(colors);
+
+      d3Chart._addData(el, mapColor, us, values);
+
+  }
+
+};
+
+d3Chart.update2 = function(el, file) {
+  // Re-compute the scales, and render the data points
+
+ queue()
+      .defer(d3.csv, file)
+      .await(ready);
+    function ready(error, data){
+      values = []
+          data.forEach(function(state){
+            values[state.state] = +state.freq;
+      });
+      var mapColor = d3.scale.quantize()
+        .domain([d3.min(data, function(d) {
+          return +d.freq;
+        }), d3.max(data, function(d) {
+          return +d.freq;
+        })])
+        .range(colors);
+
+      d3Chart._addData2(el, mapColor, values);
+
+  }
+
+};
+d3Chart._addData2 = function(el, mapColor, values) {
+	  var g = d3.select(el).selectAll('.states');
+        g.selectAll("path").each(function(d){
+        	d3.select(this).transition(6000).style("fill", mapColor(values[d3.select(this).attr("id")]));
+   		})
+      .on("mousemove", function(d) {
+         var html = "";
+        var num = values[d.properties.abbr];
+      	if(num > .01){
+      		var format = d3.format('.2s');
+      		num = format(num); 
+
+      	} else {
+      		var format = d3.format('.1r');
+      		num = format(num) + '%';
+      	} 
+      	
+
+
+        html += "<div class=\"tooltip_kv\">";
+        html += "<span class=\"tooltip_key\">";
+        html += d.properties.abbr;
+        html += "</span>";
+        html += "<span class=\"tooltip_value\">";
+        html += (num ? num : "");
+        html += "";
+        html += "</span>";
+        html += "</div>";
+       
+        $("#tooltip-container").html(html);
+        
+         $(this).css({"fill": "red", "fill-opacity": "0.5"})
+        $("#tooltip-container").show();
+        
+        var coordinates = d3.mouse(this);
+        
+        var map_width = $('.states')[0].getBoundingClientRect().width;
+        
+        if (d3.event.pageX < map_width / 2) {
+          d3.select("#tooltip-container")
+            .style("top", (d3.event.pageY + 15) + "px")
+            .style("left", (d3.event.pageX + 15) + "px");
+        } else {
+          var tooltip_width = $("#tooltip-container").width();
+          d3.select("#tooltip-container")
+            .style("top", (d3.event.pageY + 15) + "px")
+            .style("left", (d3.event.pageX - tooltip_width - 30) + "px");
+        }
+      })
+      .on("mouseout", function() {
+        $(this).css({"fill": mapColor(values[$(this).attr("id")]), "fill-opacity": "1.0"});
+        $("#tooltip-container").hide();
+      });
+
+
+    // Create legend     
+    var legend = d3.select(el).selectAll(".legend")
+
+
+ 	legend.selectAll(".mono").each(function(d){
+      d3.select(this).text(function(d) { 
+      	var num = mapColor.invertExtent(d)[1];
+      	if(num > 1){
+      		var format = d3.format('.2s');
+      		return "≥ " + format(num); 
+
+      	} else {
+      		var format = d3.format('.1r');
+      		return "≥ " + format(num) + '%';
+      	} 
+      })
+
+   	})
+
+}
+
+d3Chart._addData = function(el, mapColor, us, values) {
+ 
+	  var g = d3.select(el).selectAll('.states');
+        g.selectAll("path").each(function(d){
+        	d3.select(this).style("fill", mapColor(values[d3.select(this).attr("id")]));
+   		})
+      .on("mousemove", function(d) {
+        var html = "";
+        var num = values[d.properties.abbr];
+      	if(num > .01){
+      		var format = d3.format('.2s');
+      		num = format(num); 
+
+      	} else {
+      		var format = d3.format('.1r');
+      		num = format(num) + '%';
+      	} 
+
+        html += "<div class=\"tooltip_kv\">";
+        html += "<span class=\"tooltip_key\">";
+        html += d.properties.abbr;
+        html += "</span>";
+        html += "<span class=\"tooltip_value\">";
+        html += (num ? num : "");
+        html += "";
+        html += "</span>";
+        html += "</div>";
+       
+        $("#tooltip-container").html(html);
+        
+         $(this).css({"fill": "red", "fill-opacity": "0.5"})
+        $("#tooltip-container").show();
+        
+        var coordinates = d3.mouse(this);
+        
+        var map_width = $('.states')[0].getBoundingClientRect().width;
+        
+        if (d3.event.pageX < map_width / 2) {
+          d3.select("#tooltip-container")
+            .style("top", (d3.event.pageY + 15) + "px")
+            .style("left", (d3.event.pageX + 15) + "px");
+        } else {
+          var tooltip_width = $("#tooltip-container").width();
+          d3.select("#tooltip-container")
+            .style("top", (d3.event.pageY + 15) + "px")
+            .style("left", (d3.event.pageX - tooltip_width - 30) + "px");
+        }
+      })
+      .on("mouseout", function() {
+        $(this).css({"fill": mapColor(values[$(this).attr("id")]), "fill-opacity": "1.0"});
+        $("#tooltip-container").hide();
+      });
+
+    // Create legend     
+    var legend = d3.select(el).selectAll(".legend")
+
+
+ 	legend.selectAll(".mono").each(function(d){
+      d3.select(this).text(function(d) { 
+      	var num = mapColor.invertExtent(d)[1];
+      	if(num > 1){
+      		var format = d3.format('.2s');
+      		return "≥ " + format(num); 
+
+      	} else {
+      		var format = d3.format('.1r');
+      		return "≥ " + format(num) + '%';
+      	} 
+      })
+
+   	})
+
+}
+
+
+
+
+    </script>
+
+    <style type="text/css">
+        .states {
+  fill: none;
+  stroke: #fff;
+  stroke-linejoin: round;
+        }
+ 
+        .states text {
+            fill: #fff;
+            stroke: none;
+            text-anchor:middle;
+            font-size: 8px;
+            font-weight: bold;
+        }
+
+     rect.bordered {
+        stroke: #E6E6E6;
+        stroke-width:2px;   
+      }
+
+      text.mono {
+        font-size: 9pt;
+        font-family: Consolas, courier;
+        fill: #aaa;
+      }
+
+      text.axis-workweek {
+        fill: #000;
+      }
+
+      text.axis-worktime {
+        fill: #000;
+      }
+      #tooltip-container {
+        position: absolute;
+        background-color: #fff;
+        color: #000;
+        padding: 10px;
+        border: 1px solid;
+        display: none;
+      }
+
+      .tooltip_key {
+        font-weight: bold;
+      }
+
+      .tooltip_value {
+        margin-left: 20px;
+        float: right;
+      }
+      .btn:focus {
+  			outline: none;
+		}
+	#buttons{
+		padding-left:20px;
+		margin-bottom: 20px;
+	}
+    </style>
+</head>
+<body>
+
+    <div class="container">
+  <div class="page-header">
+    <h1>Cash for Clunkers <small>Analysis</small></h1>
+    <p>Evan Sadler</p>
+  </div>
+  <div class="row">
+    <div class="col-md-7">
+		<div id="map"></div>
+		<div id = "buttons">
+			<button  class="btn btn-default" id = "gsaved"><span style="font-size:smaller;">Gallons Saved</span></button>
+			<button class="btn btn-default" id = "gsaved-percap"><span style="font-size:smaller;">Avg Gallons Saved</span></button>
+			<button class="btn btn-default" id = "cars-percap"><span style="font-size:smaller;">Clunkers per cap</span></button>
+			<button  class="btn btn-default" id = "cars"><span style="font-size:smaller;">Total Clunkers</span></button>
+		</div>
+    </div>
+    <div id = "text" class="col-md-4">
+ 		<h3>Total Clunkers</h3>
+ 			<p>Click the buttons to change graphs and hover on a state to see specific values.</p>
+ 			<p>The data set used for these plots contains 0.98% of the entire cash for clunkers program. For more information and a free download, click here.</p>
+    </div>
+  </div>
+  <div class="row">
+		<div class = "col-md-11">
+			<h4> Environmental Analysis</h4>
+		    <p>Cars have become more fuel-efficient over time and the incentive to purchase a fuel-efficient car has increased due to higher oil prices. Eventually, most of the participants of Cash for Clunkers would have traded their car in for a more fuel-efficient alternative. Therefore, the environmental success of the program should be measured by the total gallons saved during the time between when participants got a new fuel-efficient vehicle and would have gotten one without the program. </p>
+
+			<p>Using the survey data set, I found the percentage of participants who would have waited X years to trade in their clunker. Assuming this distribution held for the entire population, I calculated to the total gallons saved by multiplying by the total gallons saved yearly (200,432,654 gallons) and summing together the resulting vector. This totaled at 504,900,348 gallons of savings.</p>
+
+			<p>Since the program cost $2.8 billon, it cost the US Government $55.50 to save one gallon of gas. This is quite a lot of money per gallon. I decided to explore the opportunity cost to put it into perspective. Since new commercial-scale turbine costs $4 million dollars, spending $2.8 billion on wind turbines would have produced 7000 new 2-megawatt turbines.  Given 1-megawatt powers 331 homes, the new wind farm would be able to power 463,400 million homes. Clearly, the money would have been much better spent else ware. </p>
+		</div>
+	</div>
+</div>
+   <div id="tooltip-container"></div>
+
+</body>
+<script type="text/javascript">
+
+$( "#gsaved" ).click(function() {
+  d3Chart.update2(document.getElementById('map'),'./public/state_gsaved.csv')
+  var html =  "<h3>Gallons Saved <small>(yearly)</small></h3><p>Click the buttons to change graphs and hover on a state to see specific values.</p><p>The data set used for these plots contains 0.98% of the entire cash for clunkers program. For more information and a free download, click here.</p>";
+  $("#text").html(html)
+
+});
+
+$( "#gsaved-percap" ).click(function() {
+  d3Chart.update2(document.getElementById('map'),'./public/state_percapita_gs.csv')
+  var html =  "<h3>Avg Gallons Saved <small>(yearly)</small></h3><p>Click the buttons to change graphs and hover on a state to see specific values.</p><p>The data set used for these plots contains 0.98% of the entire cash for clunkers program. For more information and a free download, click here.</p>";
+  $("#text").html(html)
+  	 
+});
+
+$( "#cars" ).click(function() {
+  d3Chart.update2(document.getElementById('map'),'./public/state_freq.csv')
+  var html =  "<h3>Total Clunkers</h3><p>Click the buttons to change graphs and hover on a state to see specific values.</p><p>The data set used for these plots contains 0.98% of the entire cash for clunkers program. For more information and a free download, click here.</p>";
+  $("#text").html(html)
+  	 
+});
+
+$( "#cars-percap" ).click(function() {
+  d3Chart.update2(document.getElementById('map'),'./public/state_percapita.csv')
+  var html =  "<h3>Clunkers per capita</h3><p>Click the buttons to change graphs and hover on a state to see specific values.</p><p>The data set used for these plots contains 0.98% of the entire cash for clunkers program. For more information and a free download, click here.</p>";
+  $("#text").html(html)
+  	 
+});
+d3Chart.create(document.getElementById('map'), {width: 500,
+    height: 300}, "./public/state_freq.csv")
+
+
+</script>
+</html>
