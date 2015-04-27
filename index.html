@@ -350,14 +350,14 @@ d3Chart._addData = function(el, mapColor, us, values) {
     <div class="col-md-7">
 		<div id="map" style = "width:500px; height: 300px"></div>
 		<div id = "buttons">
-			<button  class="btn btn-default" id = "gsaved"><span style="font-size:smaller;">Gallons Saved</span></button>
+			<button  class="btn btn-default" id = "gsaved" autofocus="autofocus"><span style="font-size:smaller;">Gallons Saved</span></button>
 			<button class="btn btn-default" id = "gsaved-percap"><span style="font-size:smaller;">Avg Gallons Saved</span></button>
 			<button class="btn btn-default" id = "cars-percap"><span style="font-size:smaller;">Clunkers per cap</span></button>
 			<button  class="btn btn-default" id = "cars"><span style="font-size:smaller;">Total Clunkers</span></button>
 		</div>
     </div>
     <div id = "text" class="col-md-4">
- 		<h3>Total Clunkers</h3>
+ 		<h3>Gallons Saved <small>(yearly)</small></h3>
  			<p>Click the buttons to change graphs and hover on a state to see specific values.</p>
  			<p>The data set used for these plots contains 0.98% of the entire cash for clunkers program. For more information and a free download, click here.</p>
     </div>
@@ -406,7 +406,7 @@ $( "#cars-percap" ).click(function() {
   	 
 });
 d3Chart.create(document.getElementById('map'), {width: 500,
-    height: 300}, "./public/state_freq.csv")
+    height: 300}, "./public/state_gsaved.csv")
 
 
 </script>
