@@ -351,7 +351,7 @@ d3Chart._addData = function(el, mapColor, us, values) {
 		<div id="map" style = "width:500px; height: 300px"></div>
 		<div id = "buttons">
 			<button  class="btn btn-default" id = "gsaved" autofocus="autofocus"><span style="font-size:smaller;">Gallons Saved</span></button>
-			<button class="btn btn-default" id = "gsaved-percap"><span style="font-size:smaller;">Avg Gallons Saved</span></button>
+			<button class="btn btn-default" id = "gsaved-percap"><span style="font-size:smaller;">Avg Gallons Saved per Car</span></button>
 			<button  class="btn btn-default" id = "cars"><span style="font-size:smaller;">Total Clunkers</span></button>
       <button class="btn btn-default" id = "cars-percap"><span style="font-size:smaller;">Clunkers per cap</span></button>
 
@@ -368,7 +368,7 @@ d3Chart._addData = function(el, mapColor, us, values) {
 			<h4> Environmental Analysis</h4>
 		    <p>Cars have become more fuel-efficient over time and the incentive to purchase a fuel-efficient car has increased due to higher oil prices. Eventually, most of the participants of Cash for Clunkers would have traded their car in for a more fuel-efficient alternative. Therefore, the environmental success of the program should be measured by the total gallons saved during the time between when participants got a new fuel-efficient vehicle and would have gotten one without the program. </p>
 
-			<p>Using the survey data set, I found the percentage of participants who would have waited X years to trade in their clunker. Assuming this distribution held for the entire population, I calculated to the total gallons saved by multiplying by the total gallons saved yearly (200,432,654 gallons) and summing together the resulting vector. This totaled at 504,900,348 gallons of savings.</p>
+			<p>I used the average miles driven per year (13,476 miles), the trade in car's mpg, and the new car's mpg to find an estimate gallons saved for each participant. The yearly saving totaled among all participants was 200,432,654 gallons. Using the survey data set, I found the percentage of participants who would have waited X years to trade in their clunker. Assuming this distribution held for the entire population, I calculated the total gallons saved by multiplying each percentage by the total gallons saved yearly and summing together the resulting vector. This totaled at 504,900,348 saved gallons for the entire program.</p>
 
 			<p>Since the program cost $2.8 billon, it cost the US Government $55.50 to save one gallon of gas. This is quite a lot of money per gallon. I decided to explore the opportunity cost to put it into perspective. Since new commercial-scale turbine costs $4 million dollars, spending $2.8 billion on wind turbines would have produced 7000 new 2-megawatt turbines. Given 1-megawatt powers 331 homes, the new wind farm would be able to power 463,400 million homes. Clearly, the money would have been better spent else ware. </p>
 
