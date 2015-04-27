@@ -5,6 +5,8 @@ I used R to manipulate the data and D3.js to do the visualizations (see R Script
 so my code is functional but very ugly. The goal is to convert this to a React.js application 
 and to have some serious analysis. 
 
+##### Demo
+[http://easadler.github.io/D3Clunkers/](http://easadler.github.io/D3Clunkers/)
 
 ##### Start the app
-> $ python -m SimpleHTTPServer 
+>$ python -m SimpleHTTPServer 
