@@ -6,7 +6,7 @@ so my code is functional but very ugly. The goal is to convert this to a React.j
 and to have some serious analysis. 
 
 ##### Demo
-[http://easadler.github.io/D3Clunkers/](http://easadler.github.io/D3Clunkers/)
+>[http://easadler.github.io/D3Clunkers/](http://easadler.github.io/D3Clunkers/)
 
 ##### Start the app
 >$ python -m SimpleHTTPServer 
